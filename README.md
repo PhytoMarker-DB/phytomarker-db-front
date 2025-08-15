@@ -1,59 +1,113 @@
-# PhytomarkerDbFront
+Absolument. Voici une proposition de `README.md` complet et professionnel pour la partie front-end de votre projet. Ce fichier est crucial : c'est la première chose qu'un développeur (y compris vous-même dans six mois) lira. Il doit être clair, concis et contenir toutes les informations nécessaires pour comprendre et lancer l'application.
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.15.
+Vous pouvez créer un fichier nommé `README.md` à la racine de votre dépôt `phytomarker-db-front` et y coller le contenu suivant.
 
-## Development server
+---
 
-To start a local development server, run:
+# PhytoMarker-DB Frontend 🧬
 
-```bash
-ng serve
+Bienvenue sur le dépôt du front-end de **PhytoMarker-DB**. Cette application, développée avec **Angular**, fournit l'interface utilisateur pour la plateforme d'analyse génétique végétale. Elle a pour mission de remplacer les fichiers Excel épars par une plateforme web unifiée, ergonomique et performante pour centraliser et analyser des données génétiques (phénotypes, génotypes, pedigrees).
+
+Ce dépôt contient uniquement le code de l'application cliente. Le code du backend (API Spring Boot) se trouve dans le dépôt [phytomarker-db-back](https://github.com/PhytoMarker-DB/phytomarker-db-back).
+
+## ✨ Fonctionnalités Principales
+
+*   **Recherche Avancée :** Filtrez les données végétales selon de multiples critères (variété, score de résistance, présence de marqueurs génétiques).
+*   **Visualisation des Données :** Affichez les résultats de recherche dans un tableau clair et interactif.
+*   **Analyses Statistiques :** Générez et visualisez dynamiquement des statistiques sur les cohortes de résultats (distribution des scores, fréquence des marqueurs).
+*   **Fiche Détail Complète :** Consultez une vue à 360° de chaque plante, incluant ses informations de base, ses marqueurs, et ses observations phénotypiques.
+*   **Visualisation de Pedigree Interactive :** Affichez l'arbre généalogique complet d'une plante. Le graphique gère les relations multi-parents, le zoom, le panoramique et le glisser-déposer pour une exploration intuitive.
+*   **Saisie de Données :** Un formulaire de saisie dédié permet d'ajouter de nouvelles plantes à la base de données avec une validation en temps réel.
+*   **Export de Données :** Exportez les résultats de n'importe quelle recherche au format CSV en un seul clic.
+
+## 🛠️ Stack Technique
+
+*   **Framework :** [Angular](https://angular.io/) v15+ (avec composants Standalone)
+*   **Langage :** [TypeScript](https://www.typescriptlang.org/)
+*   **Visualisation de Données :**
+    *   [D3.js](https://d3js.org/) pour le graphique de pedigree personnalisé.
+    *   [Ngx-charts](https://swimlane.github.io/ngx-charts/) pour les graphiques statistiques (box plots, diagrammes à barres).
+*   **Styling :** SCSS avec des variables CSS pour un theming facile.
+*   **Client HTTP :** `HttpClient` d'Angular.
+
+## 🚀 Démarrage Rapide
+
+Pour lancer l'application en local, suivez ces étapes.
+
+### Prérequis
+
+Assurez-vous d'avoir les outils suivants installés sur votre machine :
+*   [Node.js](https://nodejs.org/) (version 18.x ou supérieure recommandée)
+*   [Angular CLI](https://angular.io/cli) (`npm install -g @angular/cli`)
+*   [Git](https://git-scm.com/)
+
+### Installation
+
+1.  **Clonez le dépôt :**
+    ```bash
+    git clone https://github.com/PhytoMarker-DB/phytomarker-db-front.git
+    cd phytomarker-db-front
+    ```
+
+2.  **Installez les dépendances :**
+    ```bash
+    npm install
+    ```
+
+### Lancement
+
+1.  **❗️ Important :** Assurez-vous que le [serveur backend](https://github.com/PhytoMarker-DB/phytomarker-db-back) est lancé et accessible. Par défaut, le front-end essaiera de le contacter sur `http://localhost:8080`.
+
+2.  **Lancez le serveur de développement Angular :**
+    ```bash
+    ng serve
+    ```
+
+3.  **Ouvrez l'application :**
+    Naviguez sur `http://localhost:4200/` dans votre navigateur. L'application se rechargera automatiquement si vous modifiez les fichiers source.
+
+## 🔌 Configuration de l'API
+
+La connexion au backend est configurée dans un seul fichier pour une maintenance facile.
+
+*   **Fichier :** `src/app/services/plant.service.ts`
+*   **Ligne à modifier :**
+    ```typescript
+    private apiUrl = 'http://localhost:8080/api';
+    ```
+Si votre backend tourne sur un autre port ou une autre machine, modifiez cette URL en conséquence.
+
+## 📁 Structure du Projet
+
+Le projet suit la structure standard d'une application Angular, avec une organisation axée sur les fonctionnalités.
+
+```
+src/app/
+├── component/                # Composants réutilisables (graphiques, etc.)
+│   ├── pedigree-chart/
+│   └── statistical-charts/
+├── models/                   # Interfaces et modèles de données TypeScript
+│   ├── plant.model.ts
+│   └── ...
+├── pages/                    # Composants "intelligents" correspondant aux routes de l'app
+│   ├── data-entry-page/
+│   ├── plant-detail-page/
+│   └── search-page/
+├── services/                 # Services pour la logique métier et les appels API
+│   └── plant.service.ts
+├── app.component.*           # Composant racine
+├── app.config.ts             # Configuration de l'application (providers, etc.)
+└── app.routes.ts             # Définition des routes de l'application
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## 📦 Build pour la Production
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+Pour créer une version optimisée de l'application prête pour le déploiement, exécutez la commande suivante :
 
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Les fichiers compilés seront générés dans le dossier `dist/phytomarker-db-front/`. Vous pouvez ensuite déployer le contenu de ce dossier sur n'importe quel serveur web statique.
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+---
