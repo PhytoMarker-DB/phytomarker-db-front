@@ -1,9 +1,3 @@
-Absolument. Voici une proposition de `README.md` complet et professionnel pour la partie front-end de votre projet. Ce fichier est crucial : c'est la première chose qu'un développeur (y compris vous-même dans six mois) lira. Il doit être clair, concis et contenir toutes les informations nécessaires pour comprendre et lancer l'application.
-
-Vous pouvez créer un fichier nommé `README.md` à la racine de votre dépôt `phytomarker-db-front` et y coller le contenu suivant.
-
----
-
 # PhytoMarker-DB Frontend 🧬
 
 Bienvenue sur le dépôt du front-end de **PhytoMarker-DB**. Cette application, développée avec **Angular**, fournit l'interface utilisateur pour la plateforme d'analyse génétique végétale. Elle a pour mission de remplacer les fichiers Excel épars par une plateforme web unifiée, ergonomique et performante pour centraliser et analyser des données génétiques (phénotypes, génotypes, pedigrees).
