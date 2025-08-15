@@ -1,8 +1,16 @@
 // FILE: src\app\pages\plant-detail-page\plant-detail-page.component.scss
+
+// Définition du point de rupture pour la cohérence
+$breakpoint-desktop: 1024px;
+
 .page-container {
   max-width: 1400px;
-  margin: 2rem auto;
+  margin: 1rem auto;
   padding: 0 1rem;
+
+  @media (min-width: $breakpoint-desktop) {
+    margin: 2rem auto;
+  }
 }
 
 .page-header {
@@ -11,21 +19,26 @@
   position: relative;
 
   .back-link {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    transform: translateY(-50%);
+    display: block;
+    margin-bottom: 1rem;
+    text-align: center;
     text-decoration: none;
     color: var(--color-primary);
     font-weight: 500;
     &:hover {
       text-decoration: underline;
     }
+
+    @media (min-width: $breakpoint-desktop) {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      transform: translateY(-50%);
+      margin-bottom: 0;
+    }
   }
 
-  h1 {
-    margin-bottom: 0.5rem;
-  }
+  h1 { margin-bottom: 0.5rem; }
   p {
     color: var(--color-text-secondary);
     font-size: 1.1rem;
@@ -35,11 +48,11 @@
 
 .detail-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 1fr; // Une seule colonne par défaut (mobile)
+  // gap: 1.5rem;
 
-  @media (max-width: 1024px) {
-    grid-template-columns: 1fr;
+  @media (min-width: $breakpoint-desktop) {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -59,7 +72,13 @@
 }
 
 .viz-panel {
-  min-height: 500px;
+  min-height: 400px;
+  height: 60vh;
+
+  @media (min-width: $breakpoint-desktop) {
+    min-height: 500px;
+    height: auto;
+  }
 }
 
 .info-panel {
@@ -89,26 +108,83 @@
 
 .table-container {
   overflow-x: auto;
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    thead {
+      @media (max-width: #{$breakpoint-desktop - 1px}) {
+        display: none;
+      }
+    }
+
+    tbody tr {
+      @media (max-width: #{$breakpoint-desktop - 1px}) {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius);
+        padding: 0.5rem 1rem;
+      }
+    }
+
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+
+      @media (max-width: #{$breakpoint-desktop - 1px}) {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+        padding: 0.75rem 0;
+        border-bottom: 1px dashed var(--color-border);
+
+        &::before {
+          content: attr(data-label);
+          font-weight: 600;
+          text-align: left;
+          color: var(--color-text-primary);
+        }
+      }
+    }
+    
+    thead th {
+      font-weight: 600;
+      background-color: #f9fafb;
+    }
+
+    tbody tr:last-child {
+      border-bottom: none;
+      td {
+        @media (max-width: #{$breakpoint-desktop - 1px}) {
+          border-bottom: none;
+        }
+      }
+    }
+  }
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  th, td {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    border-bottom: 1px solid var(--color-border);
+.interpretation-text {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #f9fafb;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+
+  p {
+    margin: 0;
   }
-  thead th {
+
+  strong {
+    color: var(--color-text-primary);
     font-weight: 600;
-    background-color: #f9fafb;
-  }
-  tbody tr:last-child td {
-    border-bottom: none;
   }
 }
 
-// Styles pour le spinner de chargement
 .loading-spinner-overlay {
     position: fixed;
     top: 0;
@@ -121,6 +197,7 @@ table {
     align-items: center;
     z-index: 1000;
 }
+
 .loading-spinner {
     border: 5px solid #f3f3f3;
     border-top: 5px solid var(--color-primary);
@@ -129,6 +206,7 @@ table {
     height: 50px;
     animation: spin 1s linear infinite;
 }
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }

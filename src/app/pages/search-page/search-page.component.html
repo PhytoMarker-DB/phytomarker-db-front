@@ -69,10 +69,10 @@
             </thead>
             <tbody>
               <tr *ngFor="let plant of results" [routerLink]="['/plant', plant.id]" class="clickable-row" title="Voir les détails de {{plant.name}}">
-                <td>{{ plant.name }}</td>
-                <td>{{ plant.variety }}</td>
-                <td>{{ plant.mildewResistanceScore?.toFixed(1) ?? 'N/A' }}</td>
-                <td>
+                <td data-label="Nom">{{ plant.name }}</td>
+              <td data-label="Variété">{{ plant.variety }}</td>
+              <td data-label="Score Mildiou">{{ plant.mildewResistanceScore?.toFixed(1) ?? 'N/A' }}</td>
+              <td data-label="Marqueurs">
                   <span *ngIf="plant.genotypes.length > 0; else noMarkers">
                     <span *ngFor="let g of plant.genotypes" class="marker-badge">
                       {{ g.marker.name }}

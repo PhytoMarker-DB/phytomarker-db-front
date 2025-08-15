@@ -37,6 +37,7 @@ export class PedigreeChartComponent implements OnChanges {
     const container = this.elementRef.nativeElement.querySelector('.pedigree-container');
     d3.select(container).select('svg').remove();
 
+
     if (!this.data || this.data.length === 0) return;
 
     // Utiliser notre type enrichi dès le départ.

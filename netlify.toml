@@ -1,0 +1,12 @@
+# Fichier: phytomarker-db-front/netlify.toml
+
+# Configuration de la commande de build
+[build]
+  command = "ng build"
+  publish = "dist/phytomarker-db-front/" # IMPORTANT: Vérifiez ce chemin !
+
+# Règle de redirection pour les Single Page Applications (SPA)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
