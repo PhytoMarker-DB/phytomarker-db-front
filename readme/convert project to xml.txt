@@ -1,0 +1,53 @@
+$outputFile = "angular_code.txt"
+
+# Extensions ciblées pour composants, logique métier et routage standalone
+$extensions = @(
+    # Composants
+    "*.component.ts",
+    "*.component.html",
+    "*.component.scss",
+
+    # Logique métier
+    "*.service.ts",
+    "*.model.ts",
+    "*.guard.ts",
+    "*.interceptor.ts",
+    "*.directive.ts",
+    "*.pipe.ts",
+
+    # Routage Angular 15+ standalone
+    "*.routes.ts",
+    "app.routes.ts"
+)
+
+# Dossiers à exclure
+$excludeFolders = @(
+    "node_modules",
+    "dist",
+    ".angular",
+    ".git",
+    "e2e",
+    "coverage"
+)
+
+Write-Host "🔍 Extraction du code Angular (composants + logique métier + routes)..."
+Write-Host "Extensions incluses : $($extensions -join ', ')"
+Write-Host "Dossiers exclus : $($excludeFolders -join ', ')"
+Write-Host "Fichier de sortie : $outputFile"
+
+# Vide ou crée le fichier de sortie
+Clear-Content -Path $outputFile -ErrorAction SilentlyContinue
+
+# Recherche récursive
+Get-ChildItem -Path . -Recurse -Include $extensions -File |
+    Where-Object {
+        # Exclure les fichiers situés dans les dossiers interdits
+        $excludeFolders -notcontains ($_.DirectoryName.Split('\') | Where-Object { $excludeFolders -contains $_ })
+    } |
+    ForEach-Object {
+        Add-Content -Path $outputFile -Value "--- FILE: $($_.FullName.Replace($PWD.Path + '\', '')) ---"
+        Get-Content -Path $_.FullName | Add-Content -Path $outputFile
+        Add-Content -Path $outputFile -Value "" # Ligne vide entre fichiers
+    }
+
+Write-Host "✅ Extraction terminée !"

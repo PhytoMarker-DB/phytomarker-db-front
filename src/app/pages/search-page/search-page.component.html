@@ -1,0 +1,98 @@
+<!-- FILE: src\app\pages\search-page\search-page.component.html -->
+<div class="page-container">
+  <header>
+    <h1>PhytoMarker-DB</h1>
+    <p>Recherche Avancée en Génétique Végétale</p>
+    <a routerLink="/data-entry" class="button-like primary">Saisir de nouvelles données</a>
+  </header>
+
+  <div class="layout">
+    <!-- Colonne de Gauche : Recherche -->
+    <aside class="search-panel card">
+      <h2>Filtres de Recherche</h2>
+      <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
+        <div class="form-group">
+          <label for="variety">Variété</label>
+          <select id="variety" formControlName="variety">
+            <option [ngValue]="null">Toutes les variétés</option>
+            <option *ngFor="let variety of (varieties$ | async)" [value]="variety">{{ variety }}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="minMildewScore">Score Mildiou (min)</label>
+          <input id="minMildewScore" type="number" step="0.1" formControlName="minMildewScore">
+        </div>
+
+        <div class="form-group">
+          <label for="markerNames">Marqueurs</label>
+          <select id="markerNames" formControlName="markerNames" multiple class="multi-select">
+            <!-- L'async pipe va souscrire à markers$ et afficher les options quand elles arriveront -->
+            <option *ngFor="let marker of (markers$ | async)" [value]="marker">{{ marker }}</option>
+          </select>
+          <small>Utilisez Ctrl+Click (ou Cmd+Click) pour sélectionner plusieurs marqueurs.</small>
+          <pre>Marqueurs reçus: {{ (markers$ | async) | json }}</pre>
+        </div>
+        
+        <div class="button-group">
+          <button type="submit" class="primary" [disabled]="isLoading">
+            {{ isLoading ? 'Recherche...' : 'Rechercher' }}
+          </button>
+          <button type="button" class="secondary" (click)="onExport()" [disabled]="isLoading || (searchResults$ | async)?.length === 0">
+            Exporter en CSV
+          </button>
+        </div>
+      </form>
+    </aside>
+
+    <!-- Colonne Centrale : Résultats -->
+    <main class="results-panel card">
+      <h2>Résultats de la Recherche</h2>
+      <div *ngIf="isLoading" class="loading-spinner"></div>
+      
+      <div *ngIf="searchError" class="error-message">{{ searchError }}</div>
+
+      <div *ngIf="!isLoading && (searchResults$ | async) as results">
+        <div *ngIf="results.length === 0 && !searchError" class="no-results">
+          Aucun résultat trouvé pour ces critères.
+        </div>
+
+        <div class="table-container" *ngIf="results.length > 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Nom</th>
+                <th>Variété</th>
+                <th>Score Mildiou</th>
+                <th>Marqueurs</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let plant of results" [routerLink]="['/plant', plant.id]" class="clickable-row" title="Voir les détails de {{plant.name}}">
+                <td>{{ plant.name }}</td>
+                <td>{{ plant.variety }}</td>
+                <td>{{ plant.mildewResistanceScore?.toFixed(1) ?? 'N/A' }}</td>
+                <td>
+                  <span *ngIf="plant.genotypes.length > 0; else noMarkers">
+                    <span *ngFor="let g of plant.genotypes" class="marker-badge">
+                      {{ g.marker.name }}
+                    </span>
+                  </span>
+                  <ng-template #noMarkers>
+                    <span class="no-marker-text">Aucun</span>
+                  </ng-template>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Colonne de Droite : Visualisation Statistique -->
+    <aside class="viz-panel card">
+      <h2>Analyse Statistique</h2>
+      <app-statistical-charts [searchResults]="(searchResults$ | async) ?? []"></app-statistical-charts>
+    </aside>
+  </div>
+</div>

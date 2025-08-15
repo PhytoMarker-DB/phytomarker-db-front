@@ -1,0 +1,60 @@
+<!-- FILE: src\app\pages\data-entry-page\data-entry-page.component.html -->
+<div class="page-container">
+  <header class="page-header">
+    <a routerLink="/search" class="back-link">&larr; Retour</a>
+    <h1>Saisie de Données</h1>
+    <p>Enregistrement d'une nouvelle plante dans PhytoMarker-DB.</p>
+  </header>
+
+  <div class="card form-container">
+    <form [formGroup]="entryForm" (ngSubmit)="onSubmit()">
+      
+      <div class="form-group">
+        <label for="name">Nom de la Plante</label>
+        <input id="name" type="text" formControlName="name" required>
+        <div *ngIf="entryForm.get('name')?.invalid && entryForm.get('name')?.touched" class="error-text">
+          Le nom est requis.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="variety">Variété</label>
+        <input id="variety" type="text" formControlName="variety" required>
+        <div *ngIf="entryForm.get('variety')?.invalid && entryForm.get('variety')?.touched" class="error-text">
+          La variété est requise.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="mildewResistanceScore">Score Mildiou (0-5)</label>
+        <input id="mildewResistanceScore" type="number" step="0.1" formControlName="mildewResistanceScore">
+        <div *ngIf="entryForm.get('mildewResistanceScore')?.touched && entryForm.get('mildewResistanceScore')?.hasError('min')" class="error-text">
+          Le score ne peut pas être inférieur à 0.
+        </div>
+        <div *ngIf="entryForm.get('mildewResistanceScore')?.touched && entryForm.get('mildewResistanceScore')?.hasError('max')" class="error-text">
+          Le score ne peut pas être supérieur à 5.
+        </div>
+      </div>
+
+      <!-- Ajout des champs pour les parents -->
+      <div class="form-group-inline">
+          <div class="form-group">
+            <label for="parent1Id">ID Parent 1</label>
+            <input id="parent1Id" type="number" formControlName="parent1Id">
+          </div>
+          <div class="form-group">
+            <label for="parent2Id">ID Parent 2</label>
+            <input id="parent2Id" type="number" formControlName="parent2Id">
+          </div>
+      </div>
+
+      <button type="submit" class="primary" [disabled]="entryForm.invalid || isSubmitting">
+        {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer la Plante' }}
+      </button>
+
+      <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    </form>
+  </div>
+</div>

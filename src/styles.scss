@@ -1,1 +1,84 @@
-/* You can add global styles to this file, and also import other style files */
+// --- VARIABLES CSS GLOBALES (THÈME) ---
+:root {
+  /* Palette de couleurs professionnelle et scientifique */
+  --color-primary: #3B82F6;       // Bleu vif pour les accents
+  --color-primary-dark: #2563EB;
+  --color-background: #F3F4F6;   // Gris très clair pour le fond de la page
+  --color-surface: #FFFFFF;      // Blanc pour les cartes et les surfaces
+  --color-text-primary: #1F2937;   // Gris très foncé pour le texte
+  --color-text-secondary: #6B7280; // Gris moyen pour les textes d'aide
+  --color-border: #E5E7EB;         // Gris clair pour les bordures
+  --color-success: #10B981;        // Vert pour les marqueurs positifs
+
+  /* Typographie */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Autres variables de design */
+  --border-radius: 0.5rem; // 8px
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+// --- RESET & STYLES DE BASE ---
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// --- STYLES GLOBAUX POUR LES ÉLÉMENTS COMMUNS ---
+button.primary {
+  background-color: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--color-primary-dark);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      background-color: #F9FAFB;
+      color: var(--color-text-secondary);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--color-border);
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+    td {
+      padding: 1rem;
+      color: var(--color-text-secondary);
+    }
+  }
+}

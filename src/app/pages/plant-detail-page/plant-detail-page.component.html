@@ -1,0 +1,74 @@
+<!-- FILE: src\app\pages\plant-detail-page\plant-detail-page.component.html -->
+<div class="page-container">
+  <!-- Spinner de chargement -->
+  <div *ngIf="isLoading" class="loading-spinner-overlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Contenu de la page -->
+  <div *ngIf="!isLoading && plant">
+    <header class="page-header">
+      <a routerLink="/search" class="back-link">&larr; Retour à la recherche</a>
+      <h1>{{ plant.name }}</h1>
+      <p>Variété : <strong>{{ plant.variety }}</strong> | ID : {{ plant.id }}</p>
+    </header>
+
+    <div class="detail-layout">
+      <!-- Colonne de gauche : Pedigree -->
+      <div class="card viz-panel">
+        <h2>Pedigree</h2>
+        <app-pedigree-chart [data]="pedigreeData" *ngIf="pedigreeData.length > 0"></app-pedigree-chart>
+        <div *ngIf="pedigreeData.length === 0" class="no-results">
+          Aucune donnée de pedigree disponible.
+        </div>
+      </div>
+
+      <!-- Colonne de droite : Informations -->
+      <div class="info-panel">
+        <div class="card">
+          <h2>Génotypes (Marqueurs)</h2>
+          <div *ngIf="plant.genotypes.length > 0; else noGenotypes" class="badge-container">
+            <span *ngFor="let g of plant.genotypes" class="marker-badge">
+              {{ g.marker.name }}
+            </span>
+          </div>
+          <ng-template #noGenotypes>
+            <p class="no-results">Aucun marqueur génétique enregistré.</p>
+          </ng-template>
+        </div>
+
+        <div class="card">
+          <h2>Observations Phénotypiques</h2>
+          <div *ngIf="plant.observations.length > 0; else noObservations" class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Trait</th>
+                  <th>Valeur</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let obs of plant.observations">
+                  <td>{{ obs.observationDate | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ obs.trait }}</td>
+                  <td>{{ obs.value }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <ng-template #noObservations>
+            <p class="no-results">Aucune observation phénotypique enregistrée.</p>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message d'erreur -->
+  <div *ngIf="error" class="error-message card">
+    <h2>Erreur</h2>
+    <p>{{ error }}</p>
+    <a routerLink="/search" class="button-like">Retourner à la recherche</a>
+  </div>
+</div>

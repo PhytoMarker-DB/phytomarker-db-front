@@ -1,0 +1,98 @@
+// Utilisation des variables globales définies dans styles.scss
+// pour la cohérence des couleurs, des bordures, etc.
+
+.page-container {
+  max-width: 800px;
+  margin: 2rem auto; // Centrer la page avec une marge
+  padding: 0 1rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+  text-align: center;
+  position: relative;
+
+  .back-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    text-decoration: none;
+    color: var(--color-primary);
+    font-weight: 500;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  h1 {
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+    margin-top: 0;
+  }
+}
+
+.card {
+  background-color: var(--color-surface, #FFFFFF);
+  border-radius: var(--border-radius, 0.5rem);
+  padding: 2rem 2.5rem;
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1));
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+  }
+
+  input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-border, #E5E7EB);
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary, #3B82F6);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); // Halo bleu au focus
+    }
+  }
+}
+
+// Styles pour les messages de validation sous les champs
+.error-text {
+  color: var(--color-danger, #EF4444);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+// Styles pour les messages de retour après soumission
+.success-message, .error-message {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: var(--border-radius, 0.5rem);
+  text-align: center;
+  font-weight: 500;
+}
+
+.success-message {
+  background-color: #F0FDF4; // Vert très clair
+  color: #16A34A;
+  border: 1px solid #BBF7D0;
+}
+
+.error-message {
+  background-color: #FEF2F2; // Rouge très clair
+  color: #DC2626;
+  border: 1px solid #FECACA;
+}

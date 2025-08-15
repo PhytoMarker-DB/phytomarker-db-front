@@ -1,0 +1,54 @@
+<!-- FILE: src\app\component\statistical-charts\statistical-charts.component.html -->
+<div class="charts-container">
+  <div *ngIf="searchResults.length > 0; else noData">
+    
+    <!-- Graphique Box Plot (avec tooltip par défaut activé) -->
+    <div class="chart-wrapper" *ngIf="boxPlotData.length > 0">
+      <h3>Distribution des Scores Mildiou</h3>
+      <ngx-charts-box-chart
+        [view]="view"
+        [scheme]="colorScheme"
+        [results]="boxPlotData"
+        [yAxisLabel]="'Score'"
+        [yAxis]="true"
+        [tooltipDisabled]="false">
+      </ngx-charts-box-chart>
+    </div>
+
+    <!-- Graphique Fréquence des Marqueurs -->
+    <div class="chart-wrapper" *ngIf="markerFrequencyData.length > 0">
+      <h3>Fréquence des Marqueurs</h3>
+      <!-- CORRECTION : Le template personnalisé est maintenant placé A L'INTERIEUR du composant -->
+      <ngx-charts-bar-vertical
+        [view]="view"
+        [scheme]="colorScheme"
+        [results]="markerFrequencyData"
+        [xAxis]="true"
+        [yAxis]="true"
+        [xAxisLabel]="'Marqueur'"
+        [yAxisLabel]="'Nombre de plantes'"
+        [tooltipDisabled]="false">
+
+        <!-- Définition du template de tooltip personnalisé via projection de contenu -->
+        <ng-template #tooltipTemplate let-model="model">
+          <div class="custom-tooltip">
+            <div class="tooltip-label">{{ model.name }}</div>
+            <div class="tooltip-value">
+              Présent chez <strong>{{ model.value }}</strong> plante(s)
+            </div>
+          </div>
+        </ng-template>
+
+      </ngx-charts-bar-vertical>
+      <div *ngIf="markerFrequencyInterpretation" class="interpretation-text">
+        <p><strong>Interprétation :</strong> {{ markerFrequencyInterpretation }}</p>
+      </div>
+    </div>
+
+  </div>
+  <ng-template #noData>
+    <div class="no-results">
+      <p>Aucune donnée à visualiser. Lancez une recherche pour générer des statistiques.</p>
+    </div>
+  </ng-template>
+</div>

@@ -1,0 +1,875 @@
+--- FILE: src\app\component\pedigree-chart\pedigree-chart.component.html ---
+<!--
+  Ce conteneur est la cible pour D3.js.
+  Tout le graphique SVG sera généré dynamiquement à l'intérieur de cette div.
+-->
+<div class="pedigree-container"></div>
+
+--- FILE: src\app\component\pedigree-chart\pedigree-chart.component.scss ---
+// Le conteneur principal du graphique.
+.pedigree-container {
+  position: relative; // Nécessaire pour le positionnement absolu du tooltip.
+  width: 100%;
+  height: 100%;
+  min-height: 450px; // Assure une hauteur minimale pour la visibilité.
+}
+
+// Styles pour les éléments générés par D3
+.node {
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  fill: var(--color-text-secondary, #6B7280);
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 2px;
+}
+
+// Styles pour le tooltip interactif.
+.tooltip {
+  position: absolute; // Positionné par rapport au conteneur.
+  opacity: 0; // Caché par défaut.
+  text-align: left;
+  padding: 8px 12px;
+  font: 12px var(--font-sans, sans-serif);
+  background: #222;
+  color: white;
+  border: 0;
+  border-radius: var(--border-radius, 8px);
+  pointer-events: none; // Empêche le tooltip de gêner les autres événements de la souris.
+  transition: opacity 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+--- FILE: src\app\component\pedigree-chart\pedigree-chart.component.ts ---
+import {Component, ElementRef, Input, OnChanges, SimpleChanges} from '@angular/core';
+import * as d3 from 'd3';
+import {PedigreeNode} from '../../models/pedigree-node.model';
+
+
+@Component({
+  selector: 'app-pedigree-chart',
+  standalone: true,
+  imports: [],
+  templateUrl: './pedigree-chart.component.html',
+  styleUrl: './pedigree-chart.component.scss'
+})
+export class PedigreeChartComponent implements OnChanges {
+  // Accepte les données du pedigree depuis un composant parent
+  @Input() data: PedigreeNode[] = [];
+
+  constructor(private elementRef: ElementRef) {}
+
+  /**
+   * Hook de cycle de vie d'Angular.
+   * Il se déclenche à chaque fois que la valeur de l'Input 'data' change.
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    // On redessine le graphique uniquement si les données ont changé et ne sont pas vides
+    if (changes['data'] && this.data && this.data.length > 0) {
+      this.createChart();
+    }
+  }
+
+  private createChart(): void {
+    const container = this.elementRef.nativeElement.querySelector('.pedigree-container');
+
+    // Nettoyer le SVG précédent avant de redessiner pour éviter les duplications
+    d3.select(container).select('svg').remove();
+
+    // 1. Transformer les données plates en une structure hiérarchique (arbre)
+    // d3.stratify requiert une seule racine (nœud sans parent) pour fonctionner
+    const root = d3.stratify<PedigreeNode>()
+      .id(d => d.id)
+      .parentId(d => d.parents?.[0]) // Simplifié pour un arbre (un seul parent)
+      (this.data);
+
+    // 2. Définir les dimensions et créer le layout de l'arbre
+    const width = 500;
+    const height = 350;
+    const treeLayout = d3.tree<PedigreeNode>().size([width, height]);
+    const treeData = treeLayout(root);
+
+    // 3. Créer le conteneur SVG principal
+    const svg = d3.select(container)
+      .append('svg')
+      .attr('viewBox', `0 0 ${width + 100} ${height + 100}`) // Rend le SVG responsive
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+      .append('g')
+      .attr('transform', 'translate(50,50)');
+
+    // 4. Créer et configurer le générateur de liens (chemins)
+    const linkGenerator = d3.linkVertical<d3.HierarchyPointLink<PedigreeNode>, d3.HierarchyPointNode<PedigreeNode>>()
+      .x(d => d.x)
+      .y(d => d.y);
+
+    // 5. Dessiner les liens sur le SVG
+    svg.selectAll('.link')
+      .data(treeData.links())
+      .enter()
+      .append('path')
+      .attr('class', 'link')
+      .attr('d', linkGenerator); // Utiliser le générateur pour créer l'attribut 'd'
+
+    // 6. Créer des groupes pour chaque nœud (cercle + texte)
+    const nodes = svg.selectAll('.node')
+      .data(treeData.descendants())
+      .enter()
+      .append('g')
+      .attr('class', 'node')
+      .attr('transform', d => `translate(${d.x},${d.y})`);
+
+    // 7. Dessiner les cercles pour chaque nœud
+    nodes.append('circle')
+      .attr('r', 10)
+      // Coloration conditionnelle basée sur la présence du marqueur
+      .style('fill', d => d.data.hasMarker ? 'var(--color-success, #10B981)' : 'var(--color-primary, #3B82F6)')
+      .style('stroke', '#fff')
+      .style('stroke-width', '3px');
+
+    // 8. Ajouter le nom de la plante sous chaque nœud
+    nodes.append('text')
+      .attr('dy', '.35em')
+      .attr('y', 25) // Décalage vertical par rapport au cercle
+      .style('text-anchor', 'middle')
+      .text(d => d.data.name);
+
+    // 9. Créer et gérer le tooltip pour l'interactivité
+    const tooltip = d3.select(container).append('div').attr('class', 'tooltip');
+
+    nodes
+      .on('mouseover', (event, d) => {
+        tooltip.style('opacity', 1)
+          .html(`ID: <strong>${d.data.id}</strong><br>Marqueur: <strong>${d.data.hasMarker ? 'Oui' : 'Non'}</strong>`)
+          .style('left', (event.pageX + 15) + 'px')
+          .style('top', (event.pageY - 28) + 'px');
+      })
+      .on('mouseout', () => {
+        tooltip.style('opacity', 0);
+      });
+  }
+}
+
+--- FILE: src\app\models\genotype.model.ts ---
+export interface Genotype {
+  marker: {
+    name: string;
+  };
+}
+
+--- FILE: src\app\models\marker.model.ts ---
+export interface Marker {
+  id: number;
+  name: string;
+}
+
+--- FILE: src\app\models\pedigree-node.model.ts ---
+export interface PedigreeNode {
+  id: string;
+  name: string;
+  parents?: string[];
+  hasMarker?: boolean;
+}
+
+--- FILE: src\app\models\phenotype-observation.model.ts ---
+export interface PhenotypeObservation {
+  observationDate: string;
+  trait: string;
+  value: string;
+}
+
+--- FILE: src\app\models\plant-detail.model.ts ---
+import { Genotype } from './genotype.model';
+import { PhenotypeObservation } from './phenotype-observation.model';
+
+export interface PlantDetail {
+  id: number;
+  name: string;
+  variety: string;
+
+  parent1Id?: number;
+  parent2Id?: number;
+
+  genotypes: Genotype[];
+
+  observations: PhenotypeObservation[];
+}
+
+--- FILE: src\app\models\plant.model.ts ---
+import {Marker} from './marker.model';
+
+export interface Plant {
+  id: number;
+  name: string;
+  variety: string;
+  mildewResistanceScore: number;
+  genotypes: { marker: { name: string } }[];
+}
+
+--- FILE: src\app\models\search-criteria.model.ts ---
+export interface SearchCriteria {
+  variety?: string;
+  minMildewScore?: number;
+  markerNames?: string[];
+}
+
+--- FILE: src\app\pages\data-entry-page\data-entry-page.component.html ---
+<div class="page-container">
+  <header>
+    <h1>Saisie de Données</h1>
+    <p>Enregistrement d'une nouvelle plante dans PhytoMarker-DB.</p>
+  </header>
+
+  <div class="card form-container">
+    <form [formGroup]="entryForm" (ngSubmit)="onSubmit()">
+
+      <div class="form-group">
+        <label for="name">Nom de la Plante</label>
+        <input id="name" type="text" formControlName="name" required>
+        <div *ngIf="entryForm.get('name')?.invalid && entryForm.get('name')?.touched" class="error-text">
+          Le nom est requis.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="variety">Variété</label>
+        <input id="variety" type="text" formControlName="variety" required>
+        <div *ngIf="entryForm.get('variety')?.invalid && entryForm.get('variety')?.touched" class="error-text">
+          La variété est requise.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="mildewResistanceScore">Score Mildiou (0-5)</label>
+        <input id="mildewResistanceScore" type="number" step="0.1" formControlName="mildewResistanceScore">
+      </div>
+
+      <button type="submit" class="primary" [disabled]="entryForm.invalid || isSubmitting">
+        {{ isSubmitting ? 'Enregistrement...' : 'Enregistrer la Plante' }}
+      </button>
+
+      <div *ngIf="successMessage" class="success-message">{{ successMessage }}</div>
+      <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    </form>
+  </div>
+</div>
+
+--- FILE: src\app\pages\data-entry-page\data-entry-page.component.scss ---
+// Utilisation des variables globales définies dans styles.scss
+// pour la cohérence des couleurs, des bordures, etc.
+
+.page-container {
+  max-width: 800px;
+  margin: 2rem auto; // Centrer la page avec une marge
+  padding: 0 1rem;
+}
+
+.page-header {
+  margin-bottom: 2rem;
+  text-align: center;
+  position: relative;
+
+  .back-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    text-decoration: none;
+    color: var(--color-primary);
+    font-weight: 500;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  h1 {
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    font-size: 1.1rem;
+    margin-top: 0;
+  }
+}
+
+.card {
+  background-color: var(--color-surface, #FFFFFF);
+  border-radius: var(--border-radius, 0.5rem);
+  padding: 2rem 2.5rem;
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1));
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+  }
+
+  input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-border, #E5E7EB);
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: var(--color-primary, #3B82F6);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); // Halo bleu au focus
+    }
+  }
+}
+
+// Styles pour les messages de validation sous les champs
+.error-text {
+  color: var(--color-danger, #EF4444);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+// Styles pour les messages de retour après soumission
+.success-message, .error-message {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: var(--border-radius, 0.5rem);
+  text-align: center;
+  font-weight: 500;
+}
+
+.success-message {
+  background-color: #F0FDF4; // Vert très clair
+  color: #16A34A;
+  border: 1px solid #BBF7D0;
+}
+
+.error-message {
+  background-color: #FEF2F2; // Rouge très clair
+  color: #DC2626;
+  border: 1px solid #FECACA;
+}
+
+--- FILE: src\app\pages\data-entry-page\data-entry-page.component.ts ---
+import { Component } from '@angular/core';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {Router} from '@angular/router';
+import {PlantService} from '../../services/plant.service';
+import {CommonModule} from '@angular/common';
+
+@Component({
+  selector: 'app-data-entry-page',
+  imports: [
+    ReactiveFormsModule,
+    CommonModule 
+  ],
+  templateUrl: './data-entry-page.component.html',
+  styleUrl: './data-entry-page.component.scss'
+})
+export class DataEntryPageComponent {
+  entryForm: FormGroup;
+  isSubmitting = false;
+  successMessage: string | null = null;
+  errorMessage: string | null = null;
+
+  constructor(
+    private fb: FormBuilder,
+    private plantService: PlantService,
+    private router: Router
+  ) {
+    this.entryForm = this.fb.group({
+      name: ['', Validators.required],
+      variety: ['', Validators.required],
+      mildewResistanceScore: [null, [Validators.min(0), Validators.max(5)]],
+      parent1Id: [null],
+      parent2Id: [null]
+      // Les observations et génotypes seraient ajoutés dans une interface plus complexe
+    });
+  }
+
+  onSubmit(): void {
+    // Marquer tous les champs comme "touchés" pour afficher les erreurs de validation
+    this.entryForm.markAllAsTouched();
+
+    if (this.entryForm.invalid) {
+      console.log("Formulaire invalide.");
+      return; // Ne rien faire si le formulaire est invalide
+    }
+
+    // -- LOGIQUE DE SOUMISSION AJOUTÉE ICI --
+
+    this.isSubmitting = true;
+    this.successMessage = null;
+    this.errorMessage = null;
+
+    // Appel au service pour créer la plante avec les données du formulaire
+    this.plantService.createPlant(this.entryForm.value).subscribe({
+      next: (newPlant: any) => { // 'any' pour la simplicité, idéalement un modèle Plant
+        this.successMessage = `Plante "${newPlant.name}" créée avec succès (ID: ${newPlant.id}) !`;
+        this.isSubmitting = false;
+        this.entryForm.reset(); // Vider le formulaire pour une nouvelle saisie
+
+        // Optionnel : rediriger l'utilisateur après un court délai
+        // setTimeout(() => this.router.navigate(['/plant', newPlant.id]), 2000);
+      },
+      error: (err) => {
+        this.errorMessage = "Une erreur est survenue lors de la création de la plante.";
+        this.isSubmitting = false;
+        console.error("Erreur de création:", err);
+      }
+    });
+  }
+}
+
+
+--- FILE: src\app\pages\plant-detail-page\plant-detail-page.component.html ---
+<p>plant-detail-page works!</p>
+
+--- FILE: src\app\pages\plant-detail-page\plant-detail-page.component.scss ---
+
+--- FILE: src\app\pages\plant-detail-page\plant-detail-page.component.ts ---
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { PlantService } from '../../services/plant.service';
+import { PlantDetail } from '../../models/plant-detail.model';
+import { PedigreeNode } from '../../models/pedigree-node.model';
+import { PedigreeChartComponent } from '../../component/pedigree-chart/pedigree-chart.component';
+
+@Component({
+  selector: 'app-plant-detail-page',
+  standalone: true,
+  imports: [CommonModule, RouterModule, PedigreeChartComponent],
+  templateUrl: './plant-detail-page.component.html',
+  styleUrl: './plant-detail-page.component.scss'
+})
+export class PlantDetailPageComponent implements OnInit {
+  plant: PlantDetail | null = null;
+  isLoading = true;
+  error: string | null = null;
+  pedigreeData: PedigreeNode[] = [];
+
+  constructor(private route: ActivatedRoute, private plantService: PlantService) {}
+
+  ngOnInit(): void {
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
+      const id = Number(idParam);
+      this.loadPlantDetails(id);
+    } else {
+      this.error = "Aucun identifiant de plante n'a été fourni.";
+      this.isLoading = false;
+    }
+  }
+
+  loadPlantDetails(id: number): void {
+    this.isLoading = true;
+    this.plantService.getPlantById(id).subscribe({
+      next: (data) => {
+        this.plant = data;
+        this.pedigreeData = this.transformToPedigree(data);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        this.error = "Impossible de charger les détails de la plante.";
+        this.isLoading = false;
+        console.error(err);
+      }
+    });
+  }
+
+  transformToPedigree(plant: PlantDetail): PedigreeNode[] {
+    const nodes: PedigreeNode[] = [];
+
+    nodes.push({ id: String(plant.id), name: plant.name });
+
+    if (plant.parent1Id) {
+      nodes.push({ id: String(plant.parent1Id), name: `Parent ${plant.parent1Id}` });
+      // On lie le nœud principal à son parent
+      const currentNode = nodes.find(n => n.id === String(plant.id));
+      if (currentNode) {
+        currentNode.parents = [String(plant.parent1Id)];
+      }
+    }
+
+    return nodes;
+  }
+}
+
+--- FILE: src\app\pages\search-page\search-page.component.html ---
+<div class="page-container">
+  <header>
+    <h1>PhytoMarker-DB</h1>
+    <p>Recherche Avancée en Génétique Végétale</p>
+
+    <a routerLink="/data-entry" class="button-like">Saisir de nouvelles données</a>
+  </header>
+
+  <div class="layout">
+    <!-- Colonne de Gauche : Recherche -->
+    <aside class="search-panel card">
+      <h2>Filtres de Recherche</h2>
+      <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
+        <!-- Filtre Variété -->
+        <div class="form-group">
+          <label for="variety">Variété</label>
+          <select id="variety" formControlName="variety">
+            <option [ngValue]="null">Toutes les variétés</option>
+            <option *ngFor="let variety of (varieties$ | async)" [value]="variety">
+              {{ variety }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Filtre Score Mildiou -->
+        <div class="form-group">
+          <label for="minMildewScore">Score Mildiou (min)</label>
+          <input id="minMildewScore" type="number" step="0.1" formControlName="minMildewScore">
+        </div>
+
+        <!-- Filtre Marqueurs -->
+        <div class="form-group">
+          <label for="markerNames">Marqueurs (séparés par ',')</label>
+          <input id="markerNames" type="text" formControlName="markerNames" placeholder="Mk-R-123, Mk-R-125">
+        </div>
+
+        <button type="submit" class="primary" [disabled]="isLoading">
+          {{ isLoading ? 'Recherche...' : 'Rechercher' }}
+        </button>
+      </form>
+    </aside>
+
+    <!-- Colonne Centrale : Résultats -->
+    <main class="results-panel card">
+      <h2>Résultats de la Recherche</h2>
+      <div *ngIf="isLoading" class="loading-spinner"></div>
+
+      <div *ngIf="!isLoading && (searchResults$ | async) as results">
+        <div *ngIf="results.length === 0" class="no-results">
+          Aucun résultat trouvé pour ces critères.
+        </div>
+
+        <table *ngIf="results.length > 0">
+          <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Variété</th>
+            <th>Score Mildiou</th>
+            <th>Marqueurs</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let plant of results">
+            <td>{{ plant.name }}</td>
+            <td>{{ plant.variety }}</td>
+            <td>{{ plant.mildewResistanceScore }}</td>
+            <td>
+                <span *ngFor="let g of plant.genotypes" class="marker-badge">
+                  {{ g.marker.name }}
+                </span>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <!-- Colonne de Droite : Visualisation -->
+    <aside class="viz-panel card">
+      <h2>Visualisation du Pedigree</h2>
+      <app-pedigree-chart [data]="pedigreeData"></app-pedigree-chart>
+    </aside>
+  </div>
+</div>
+
+--- FILE: src\app\pages\search-page\search-page.component.scss ---
+.page-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+header {
+  margin-bottom: 2rem;
+  text-align: center;
+  h1 { margin-bottom: 0.5rem; }
+  p { color: var(--color-text-secondary); }
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 1fr; // 3 colonnes
+  gap: 1.5rem;
+
+  @media (max-width: 1200px) {
+    grid-template-columns: 1fr 1fr;
+    .search-panel { grid-column: 1 / -1; } // Le panel de recherche prend toute la largeur
+  }
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr; // 1 seule colonne sur mobile
+  }
+}
+
+.card {
+  background-color: var(--color-surface);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+  label {
+    display: block;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+  }
+  input {
+    width: 100%;
+    padding: 0.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+  }
+}
+
+.marker-badge {
+  background-color: #E0E7FF;
+  color: #4338CA;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-right: 0.25rem;
+}
+
+--- FILE: src\app\pages\search-page\search-page.component.ts ---
+import {Component, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
+import {PedigreeChartComponent} from '../../component/pedigree-chart/pedigree-chart.component';
+import {BehaviorSubject} from 'rxjs';
+import {Plant} from '../../models/plant.model';
+import {PedigreeNode} from '../../models/pedigree-node.model';
+import {PlantService} from '../../services/plant.service';
+import {RouterLink} from '@angular/router';
+
+@Component({
+  selector: 'app-search-page',
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    PedigreeChartComponent,
+    RouterLink
+  ],
+  templateUrl: './search-page.component.html',
+  styleUrl: './search-page.component.scss'
+})
+export class SearchPageComponent implements OnInit {
+  searchForm: FormGroup;
+  // Utiliser un BehaviorSubject pour gérer l'état des résultats de recherche
+  searchResults$ = new BehaviorSubject<Plant[]>([]);
+  isLoading = false;
+  searchError: string | null = null;
+  varieties$ = new BehaviorSubject<string[]>([]);
+
+  // Données pour le composant de pedigree
+  pedigreeData: PedigreeNode[] = [];
+
+  constructor(private fb: FormBuilder, private plantService: PlantService) {
+    this.searchForm = this.fb.group({
+      variety: ['Blé dur'],
+      minMildewScore: [4.0],
+      markerNames: ['Mk-R-123'] // Pré-remplir avec un marqueur pour de meilleurs résultats initiaux
+    });
+  }
+
+  ngOnInit(): void {
+    // Exécuter une recherche initiale au chargement de la page
+    this.onSearch();
+    // Charger les données de test pour l'arbre généalogique
+    this.setupMockPedigree();
+    this.loadFilterOptions();
+  }
+
+  loadFilterOptions(): void {
+    this.plantService.getVarieties().subscribe(data => this.varieties$.next(data));
+  }
+
+  onSearch(): void {
+    this.isLoading = true;
+    this.searchError = null; // Réinitialiser le message d'erreur à chaque recherche
+    const formValue = this.searchForm.value;
+
+    // Préparer les critères de recherche
+    const criteria = {
+      ...formValue,
+      // Transformer la chaîne de marqueurs en un tableau propre, en filtrant les entrées vides
+      markerNames: formValue.markerNames
+        ? formValue.markerNames.split(',').map((s: string) => s.trim()).filter((s: string) => s)
+        : []
+    };
+
+    this.plantService.searchPlants(criteria).subscribe({
+      next: (results) => {
+        this.searchResults$.next(results);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error("Erreur de recherche:", err);
+        this.searchError = "La recherche a échoué. Vérifiez que le serveur est bien démarré.";
+        this.isLoading = false;
+      }
+    });
+  }
+
+  setupMockPedigree(): void {
+    this.pedigreeData = [
+
+      { id: '1', name: 'Ancetre-01', hasMarker: true },
+
+      // Nœuds enfants, tous rattachés (directement ou indirectement) à la racine '1'
+      { id: '2', name: 'Parent-A', parents: ['1'], hasMarker: true },
+      { id: '3', name: 'Parent-B', parents: ['1'], hasMarker: false },
+      { id: '4', name: 'Descendant-001', parents: ['2'], hasMarker: true },
+      { id: '5', name: 'Descendant-002', parents: ['2'], hasMarker: true },
+    ];
+  }
+
+  onExport(): void {
+    const criteria = this.searchForm.value;
+    this.plantService.exportPlants(criteria);
+  }
+}
+
+--- FILE: src\app\services\plant.service.ts ---
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { saveAs } from 'file-saver';
+
+import { Plant } from '../models/plant.model';
+import { PlantDetail } from '../models/plant-detail.model'; // Importer le nouveau modèle
+import { SearchCriteria } from '../models/search-criteria.model';
+
+export type NewPlantData = Partial<Plant>;
+
+@Injectable({
+  providedIn: 'root'
+})
+export class PlantService {
+  private apiUrl = 'http://localhost:8080/api/plants';
+
+  constructor(private http: HttpClient) {}
+
+  getPlantById(id: number): Observable<PlantDetail> {
+
+    return this.http.get<PlantDetail>(`${this.apiUrl}/${id}`);
+  }
+
+  searchPlants(criteria: SearchCriteria): Observable<Plant[]> {
+    let params = new HttpParams();
+    if (criteria.variety) {
+      params = params.set('variety', criteria.variety);
+    }
+    if (criteria.minMildewScore !== undefined && criteria.minMildewScore !== null) {
+      params = params.set('minMildewScore', criteria.minMildewScore.toString());
+    }
+    if (criteria.markerNames && criteria.markerNames.length > 0) {
+      criteria.markerNames.forEach(name => {
+        params = params.append('markerNames', name);
+      });
+    }
+
+    // On passe juste les 'params'. L'intercepteur ajoutera les en-têtes.
+    return this.http.get<Plant[]>(`${this.apiUrl}/search`, { params });
+  }
+
+  exportPlants(criteria: SearchCriteria): void {
+    // On doit reconstruire les params ici aussi.
+    let params = new HttpParams();
+    if (criteria.variety) {
+      params = params.set('variety', criteria.variety);
+    }
+    if (criteria.minMildewScore !== undefined && criteria.minMildewScore !== null) {
+      params = params.set('minMildewScore', criteria.minMildewScore.toString());
+    }
+    if (criteria.markerNames && criteria.markerNames.length > 0) {
+      criteria.markerNames.forEach(name => {
+        params = params.append('markerNames', name);
+      });
+    }
+
+    this.http.get(`${this.apiUrl}/search/export`, { params, responseType: 'blob' })
+      .subscribe(blob => {
+        saveAs(blob, 'export_plants.csv');
+      });
+  }
+
+  getVarieties(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.apiUrl}/varieties`);
+  }
+
+  createPlant(plantData: NewPlantData): Observable<Plant> {
+    return this.http.post<Plant>(this.apiUrl, plantData);
+  }
+}
+
+--- FILE: src\app\app.component.html ---
+<router-outlet />
+
+--- FILE: src\app\app.component.scss ---
+
+--- FILE: src\app\app.component.ts ---
+import { Component } from '@angular/core';
+import {RouterModule, RouterOutlet} from '@angular/router';
+
+@Component({
+  selector: 'app-root',
+  imports: [RouterOutlet, RouterModule],
+  templateUrl: './app.component.html',
+  styleUrl: './app.component.scss'
+})
+export class AppComponent {
+  title = 'PhytoMarker-DB';
+}
+
+--- FILE: src\app\app.routes.ts ---
+import { Routes } from '@angular/router';
+import {SearchPageComponent} from './pages/search-page/search-page.component';
+import {PlantDetailPageComponent} from './pages/plant-detail-page/plant-detail-page.component';
+import {DataEntryPageComponent} from './pages/data-entry-page/data-entry-page.component';
+
+export const routes: Routes = [
+
+  {
+    path: 'search',
+    component: SearchPageComponent
+  },
+  {
+    path: 'plant/:id',
+    component: PlantDetailPageComponent
+  },
+  { path: 'data-entry', component: DataEntryPageComponent },
+  {
+    path: '',
+    redirectTo: '/search',
+    pathMatch: 'full'
+  },
+
+  {
+    path: '**',
+    redirectTo: '/search'
+  },
+
+];
+
