@@ -33,12 +33,13 @@
           <small>Utilisez Ctrl+Click (ou Cmd+Click) pour sélectionner plusieurs marqueurs.</small>
           <pre>Marqueurs reçus: {{ (markers$ | async) | json }}</pre>
         </div>
-        
+
         <div class="button-group">
           <button type="submit" class="primary" [disabled]="isLoading">
             {{ isLoading ? 'Recherche...' : 'Rechercher' }}
           </button>
-          <button type="button" class="secondary" (click)="onExport()" [disabled]="isLoading || (searchResults$ | async)?.length === 0">
+          <button type="button" class="secondary" (click)="onExport()"
+            [disabled]="isLoading || (searchResults$ | async)?.length === 0">
             Exporter en CSV
           </button>
         </div>
@@ -49,7 +50,7 @@
     <main class="results-panel card">
       <h2>Résultats de la Recherche</h2>
       <div *ngIf="isLoading" class="loading-spinner"></div>
-      
+
       <div *ngIf="searchError" class="error-message">{{ searchError }}</div>
 
       <div *ngIf="!isLoading && (searchResults$ | async) as results">
@@ -68,11 +69,12 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let plant of results" [routerLink]="['/plant', plant.id]" class="clickable-row" title="Voir les détails de {{plant.name}}">
+              <tr *ngFor="let plant of results" [routerLink]="['/plant', plant.id]" class="clickable-row"
+                title="Voir les détails de {{plant.name}}">
                 <td data-label="Nom">{{ plant.name }}</td>
-              <td data-label="Variété">{{ plant.variety }}</td>
-              <td data-label="Score Mildiou">{{ plant.mildewResistanceScore?.toFixed(1) ?? 'N/A' }}</td>
-              <td data-label="Marqueurs">
+                <td data-label="Variété">{{ plant.variety }}</td>
+                <td data-label="Score Mildiou">{{ plant.mildewResistanceScore?.toFixed(1) ?? 'N/A' }}</td>
+                <td data-label="Marqueurs">
                   <span *ngIf="plant.genotypes.length > 0; else noMarkers">
                     <span *ngFor="let g of plant.genotypes" class="marker-badge">
                       {{ g.marker.name }}
