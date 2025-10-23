@@ -14,6 +14,9 @@ Ce dépôt contient uniquement le code de l'application cliente. Le code du back
 *   **Saisie de Données :** Un formulaire de saisie dédié permet d'ajouter de nouvelles plantes à la base de données avec une validation en temps réel.
 *   **Export de Données :** Exportez les résultats de n'importe quelle recherche au format CSV en un seul clic.
 
+<img width="1900" height="941" alt="screely-1761208226855" src="https://github.com/user-attachments/assets/f69860b7-1f95-4ca1-8f4a-870eac9d85bf" />
+
+
 ## 🛠️ Stack Technique
 
 *   **Framework :** [Angular](https://angular.io/) v15+ (avec composants Standalone)
@@ -105,3 +108,11 @@ ng build
 Les fichiers compilés seront générés dans le dossier `dist/phytomarker-db-front/`. Vous pouvez ensuite déployer le contenu de ce dossier sur n'importe quel serveur web statique.
 
 ---
+
+### Pedigree et Détail Descendants 
+<img width="1917" height="939" alt="screely-1761211437329" src="https://github.com/user-attachments/assets/7fcc2fe6-6e42-402b-8170-a8a1720b5e08" />
+
+### Formulaire de saisie
+<img width="1917" height="942" alt="screely-1761211552445" src="https://github.com/user-attachments/assets/b179194d-7faa-4548-95ec-54e300218468" />
+
+
